@@ -13,7 +13,6 @@ import { BACKUP_KEYS, readStoredJson } from './utils/backup';
 import { getStoredApiKey } from './utils/gemini';
 import { getTodayKey, getHabitStats, computeUserBadges } from './utils/srs';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
-import { ProjectMenu } from './components/ProjectMenu';
 
 interface Toast {
   id: number;
@@ -206,7 +205,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
-      <ProjectMenu activeApp="note" />
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}

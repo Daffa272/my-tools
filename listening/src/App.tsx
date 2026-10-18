@@ -48,7 +48,6 @@ import {
   SkipForward,
   SkipBack,
 } from 'lucide-react';
-import { ProjectMenu } from './components/ProjectMenu';
 
 // TOEFL Types
 export type TOEFLPart = 'partA' | 'partB' | 'partC';
@@ -1148,7 +1147,6 @@ Requirements:
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors">
-      <ProjectMenu activeApp="listening" />
       {/* Top Bar */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-8 py-3 transition-colors">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">

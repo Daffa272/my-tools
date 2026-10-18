@@ -43,7 +43,6 @@ import {
   CheckCircle2,
   X
 } from 'lucide-react';
-import { ProjectMenu } from './components/ProjectMenu';
 
 // Default initial showcase word for immediate rich visualization
 const INITIAL_DEMO_WORD: WordData = {
@@ -552,7 +551,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
-      <ProjectMenu activeApp="vocab" />
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-5 right-5 z-50 flex items-center gap-2 rounded-xl bg-slate-900/90 dark:bg-slate-800/95 text-white px-4 py-3 shadow-xl backdrop-blur-md animate-in slide-in-from-top-4 duration-200 border border-slate-700/50">

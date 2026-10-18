@@ -13,7 +13,6 @@ import { DailyPuzzleModal } from './components/DailyPuzzleModal';
 import { PomodoroWidget } from './components/PomodoroWidget';
 import { ToastContainer } from './components/Toast';
 import { BookMarked } from 'lucide-react';
-import { ProjectMenu } from './components/ProjectMenu';
 
 export default function App() {
   const [cards, setCards] = useState<KBBICard[]>(() => loadCards());
@@ -241,7 +240,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-stone-900 flex flex-col selection:bg-emerald-100 selection:text-emerald-950">
-      <ProjectMenu activeApp="kbbi" />
       {/* Top Navigation without external menus */}
       <Navbar
         apiKey={apiKey}

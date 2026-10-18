@@ -30,7 +30,6 @@ import {
   TARGET_HEIGHT
 } from './services/db';
 import { getStarterPackData } from './services/starterPack';
-import { ProjectMenu } from './components/ProjectMenu';
 
 export default function App() {
   const [cards, setCards] = useState<ObjectCard[]>([]);
@@ -412,7 +411,6 @@ export default function App() {
 
   return (
     <div className={`${isDarkMode ? 'dark' : ''} min-h-screen flex flex-col bg-[#fafaf8] dark:bg-stone-950 text-stone-900 dark:text-stone-100 selection:bg-emerald-500/20 transition-colors`}>
-      <ProjectMenu activeApp="object" />
       {/* Top Bar Navigation */}
       <Navbar
         activeTab={activeTab}
