@@ -1255,6 +1255,29 @@ Requirements:
             </button>
           </div>
         </div>
+        <nav aria-label="Menu aplikasi" className="mx-auto flex max-w-6xl gap-1 overflow-x-auto border-t border-slate-200/60 py-2 text-xs dark:border-slate-800">
+          {[
+            { id: 'vocab', label: 'Vocab', href: 'https://my-tools-eyy1.vercel.app/' },
+            { id: 'object', label: 'Object', href: 'https://my-tools-mzmj.vercel.app/' },
+            { id: 'note', label: 'Note', href: 'https://my-tools-ulry.vercel.app/' },
+            { id: 'listening', label: 'Listening', href: 'https://my-tools-n9a3.vercel.app/' },
+            { id: 'kbbi', label: 'KBBI', href: 'https://my-tools-hdof.vercel.app/' },
+            { id: 'pauli', label: 'Pauli', href: 'https://my-tools-dz2c.vercel.app/' },
+          ].map((app) => (
+            <a
+              key={app.id}
+              href={app.href}
+              aria-current={app.id === 'listening' ? 'page' : undefined}
+              className={`shrink-0 rounded-lg px-3 py-1.5 font-semibold transition-colors ${
+                app.id === 'listening'
+                  ? 'bg-teal-100 text-teal-900 dark:bg-teal-950/60 dark:text-teal-300'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+              }`}
+            >
+              {app.label}
+            </a>
+          ))}
+        </nav>
       </header>
 
       {/* Main Container */}
