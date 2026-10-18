@@ -1,0 +1,6 @@
+{
+  "name": "Catatan & Conversation Practice",
+  "description": "Aplikasi catatan modern dengan editor dokumen terstruktur dan latihan percakapan bahasa Inggris bertenaga AI dengan spaced repetition.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

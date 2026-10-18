@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f8fafc" />
+    <title>English Hub</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 48px 20px;
+        background: #f8fafc;
+        color: #0f172a;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      }
+      main { width: min(760px, 100%); margin: 0 auto; }
+      h1 { margin: 0; font-size: clamp(2rem, 6vw, 3rem); letter-spacing: -.04em; }
+      p { margin: 12px 0 28px; color: #475569; }
+      nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+      a {
+        display: block;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: white;
+        color: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        transition: border-color .15s, transform .15s;
+      }
+      a:hover { transform: translateY(-2px); border-color: #6366f1; }
+      a span { display: block; margin-top: 5px; color: #64748b; font-size: .8rem; font-weight: 400; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>English Hub</h1>
+      <p>Pilih ruang belajar untuk melanjutkan.</p>
+      <nav aria-label="Aplikasi belajar">
+        <a href="http://localhost:3001/">KBBI<span>Kosakata dan flashcard</span></a>
+        <a href="http://localhost:3002/">Listening<span>Latihan TOEFL listening</span></a>
+        <a href="http://localhost:3003/">Catatan<span>Catatan dan latihan percakapan</span></a>
+        <a href="http://localhost:3004/">Benda<span>Belajar kosakata dari objek</span></a>
+        <a href="http://localhost:3005/">Tes Pauli<span>Simulasi tes Pauli</span></a>
+        <a href="http://localhost:3006/">Vocabulary<span>Kamus dan latihan kosakata</span></a>
+      </nav>
+    </main>
+  </body>
+</html>

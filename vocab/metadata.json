@@ -1,0 +1,6 @@
+{
+  "name": "AI Vocab Translator & TOEFL Prep",
+  "description": "Modern TOEFL vocabulary analyzer, spaced repetition flashcards, interactive speech trainer, and pomodoro study suite.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

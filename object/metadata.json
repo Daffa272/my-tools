@@ -1,0 +1,7 @@
+{
+  "name": "Object English - Belajar dari Benda",
+  "description": "Aplikasi belajar kosakata bahasa Inggris modern berbasis gambar dan spaced repetition.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

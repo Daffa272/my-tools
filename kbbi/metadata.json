@@ -1,0 +1,6 @@
+{
+  "name": "Kosa Kata KBBI - Repetition",
+  "description": "Aplikasi modern perbendaharaan kosa kata KBBI dengan sistem flashcard spaced repetition cerdas, latihan sinonim-antonim, tes pengucapan, dan bantuan AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

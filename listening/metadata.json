@@ -1,0 +1,6 @@
+{
+  "name": "TOEFL Listening Comprehension Studio",
+  "description": "Platform latihan listening TOEFL ITP modern berbasis AI dengan sintesis suara multi-speaker, transkrip interaktif, dan evaluasi instan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

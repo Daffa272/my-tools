@@ -1,0 +1,6 @@
+{
+  "name": "Tes Pauli & Kraepelin Pro",
+  "description": "Simulasi psikotes Pauli dan Kraepelin modern dengan analisis kurva kerja, ketelitian, kecepatan, dan daya tahan konsentrasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
