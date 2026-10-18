@@ -21,10 +21,12 @@ const devPorts: Record<ProjectId, number> = {
 };
 
 export function ProjectMenu({ activeApp }: { activeApp: ProjectId }) {
-  const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const isStandaloneDevServer =
+    ['localhost', '127.0.0.1'].includes(window.location.hostname) &&
+    Object.values(devPorts).includes(Number(window.location.port));
   const projectHref = (id: ProjectId) =>
-    isLocal ? `http://${window.location.hostname}:${devPorts[id]}/` : `../${id}/`;
-  const homeHref = isLocal ? 'http://localhost:3100/' : '../';
+    isStandaloneDevServer ? `http://${window.location.hostname}:${devPorts[id]}/` : `/${id}/`;
+  const homeHref = isStandaloneDevServer ? 'http://localhost:3100/' : '/';
 
   return (
     <nav
