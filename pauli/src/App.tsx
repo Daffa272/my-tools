@@ -9,7 +9,6 @@ import { TestView } from './components/TestView';
 import { ResultView } from './components/ResultView';
 import { GuideModal } from './components/GuideModal';
 import { HistoryModal } from './components/HistoryModal';
-import { ProjectMenu } from './components/ProjectMenu';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'setup' | 'test' | 'result'>('setup');
@@ -99,7 +98,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
-      <ProjectMenu activeApp="pauli" />
       {/* Universal Top Bar */}
       <Header
         currentView={currentView}
