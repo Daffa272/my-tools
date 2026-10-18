@@ -24,7 +24,7 @@
     "object-api": {
       "root": "object",
       "framework": "express",
-      "entrypoint": "index.ts"
+      "entrypoint": "index.js"
     },
     "pauli": {
       "root": "pauli",
@@ -49,24 +49,48 @@
       "destination": { "service": "object-api" }
     },
     {
+      "source": "/kbbi/",
+      "destination": { "service": "kbbi", "path": "/" }
+    },
+    {
       "source": "/kbbi/:path*",
       "destination": { "service": "kbbi", "path": "/:path*" }
+    },
+    {
+      "source": "/listening/",
+      "destination": { "service": "listening", "path": "/" }
     },
     {
       "source": "/listening/:path*",
       "destination": { "service": "listening", "path": "/:path*" }
     },
     {
+      "source": "/note/",
+      "destination": { "service": "note", "path": "/" }
+    },
+    {
       "source": "/note/:path*",
       "destination": { "service": "note", "path": "/:path*" }
+    },
+    {
+      "source": "/object/",
+      "destination": { "service": "object", "path": "/" }
     },
     {
       "source": "/object/:path*",
       "destination": { "service": "object", "path": "/:path*" }
     },
     {
+      "source": "/pauli/",
+      "destination": { "service": "pauli", "path": "/" }
+    },
+    {
       "source": "/pauli/:path*",
       "destination": { "service": "pauli", "path": "/:path*" }
+    },
+    {
+      "source": "/vocab/",
+      "destination": { "service": "vocab", "path": "/" }
     },
     {
       "source": "/vocab/:path*",
