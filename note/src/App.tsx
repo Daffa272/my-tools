@@ -227,6 +227,7 @@ export default function App() {
             onNotesChange={handleNotesChange}
             onShowToast={showToast}
             conversationCards={cards}
+            onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
           />
         )}
 
@@ -270,6 +271,7 @@ export default function App() {
               onNotesChange={handleNotesChange}
               onShowToast={showToast}
               conversationCards={cards}
+              onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
             />
             <div className="pt-2">
               <ConversationModule

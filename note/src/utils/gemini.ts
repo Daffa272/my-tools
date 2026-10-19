@@ -266,6 +266,77 @@ Balas HANYA dalam JSON: {"polishedHtml": "...", "summaryOfChanges": "..."}`;
   });
 }
 
+export async function createStructuredNoteFromImage(params: {
+  mimeType: string;
+  base64Data: string;
+  title?: string;
+}): Promise<{
+  title: string;
+  contentHtml: string;
+  summary: string;
+}> {
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    throw new Error('Simpan Gemini API Key di menu pengaturan terlebih dahulu untuk memindai gambar.');
+  }
+
+  const systemPrompt = `Anda adalah asisten pencatat yang menyalin dan merapikan informasi dari gambar catatan.
+1. Baca teks yang terlihat pada gambar setepat mungkin, termasuk bahasa aslinya.
+2. Susun ulang menjadi catatan terstruktur dengan judul bagian dan daftar bila sesuai; jangan mengubah maksud atau menambahkan informasi yang tidak ada di gambar.
+3. Jika sebagian tulisan tidak terbaca, nyatakan dengan jelas sebagai "[tidak terbaca]" alih-alih menebak.
+4. Kembalikan contentHtml hanya menggunakan tag aman: p, br, strong, em, h2, h3, ul, ol, li, blockquote, table, thead, tbody, tr, th, td.
+5. Berikan ringkasan singkat dalam bahasa Indonesia.
+Balas HANYA JSON: {"title":"judul catatan","contentHtml":"<h2>...</h2><ul><li>...</li></ul>","summary":"ringkasan singkat"}`;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{
+          role: 'user',
+          parts: [
+            { text: `Pindai gambar ini dan buat catatan terstruktur.${params.title ? ` Judul catatan yang sedang dibuka: "${params.title}".` : ''}` },
+            { inlineData: { mimeType: params.mimeType, data: params.base64Data } }
+          ]
+        }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    let detail = '';
+    try {
+      detail = JSON.parse(errorBody)?.error?.message || '';
+    } catch {
+      // Ignore non-JSON error bodies.
+    }
+    throw new Error(detail || `Gemini gagal memindai gambar (${response.status}).`);
+  }
+
+  const payload = await response.json();
+  const responseText = payload.candidates?.[0]?.content?.parts
+    ?.map((part: { text?: string }) => part.text || '')
+    .join('')
+    .replace(/```json|```/g, '')
+    .trim();
+  if (!responseText) throw new Error('Gemini tidak menemukan teks yang dapat dijadikan catatan.');
+
+  const result = JSON.parse(responseText) as { title?: string; contentHtml?: string; summary?: string };
+  if (!result.contentHtml?.trim()) {
+    throw new Error('Gemini tidak mengembalikan isi catatan dari gambar tersebut.');
+  }
+  return {
+    title: result.title?.trim() || 'Catatan hasil pindai',
+    contentHtml: result.contentHtml,
+    summary: result.summary?.trim() || 'Isi gambar dipindai dan disusun menjadi catatan.'
+  };
+}
+
 export async function detectCefrLevel(sentence: string): Promise<'A1' | 'A2' | 'B1' | 'B2' | 'C1'> {
   const systemPrompt = `Tentukan perkiraan level CEFR (A1, A2, B1, B2, atau C1) dari kalimat percakapan bahasa Inggris berikut.
 Balas HANYA dalam format JSON: {"level": "B1"}`;

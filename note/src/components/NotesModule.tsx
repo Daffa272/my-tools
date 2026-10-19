@@ -24,11 +24,12 @@ import {
   Download,
   CheckSquare,
   MessageSquarePlus,
-  Sparkles
+  Sparkles,
+  ImagePlus
 } from 'lucide-react';
 import { Note, ConversationCard } from '../types';
 import { formatNoteDate, getTodayKey, logActivity } from '../utils/srs';
-import { polishNoteContent } from '../utils/gemini';
+import { createStructuredNoteFromImage, getStoredApiKey, polishNoteContent } from '../utils/gemini';
 import { InsertConversationModal } from './InsertConversationModal';
 
 const ALLOWED_TAGS = new Set([
@@ -109,13 +110,15 @@ interface NotesModuleProps {
   onNotesChange: (notes: Note[]) => void;
   onShowToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   conversationCards?: ConversationCard[];
+  onOpenApiKeyModal?: () => void;
 }
 
 export const NotesModule: React.FC<NotesModuleProps> = ({
   notes,
   onNotesChange,
   onShowToast,
-  conversationCards = []
+  conversationCards = [],
+  onOpenApiKeyModal
 }) => {
   const [activeId, setActiveId] = useState<string | null>(() => (notes.length > 0 ? notes[0].id : null));
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,11 +132,15 @@ export const NotesModule: React.FC<NotesModuleProps> = ({
   const [isInTable, setIsInTable] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
   const [isPolishing, setIsPolishing] = useState(false);
+  const [isScanningImage, setIsScanningImage] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const saveTimeoutRef = useRef<number | null>(null);
   const savedSelectionRef = useRef<Range | null>(null);
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
 
   const activeNote = notes.find(n => n.id === activeId) || null;
 
@@ -224,6 +231,72 @@ export const NotesModule: React.FC<NotesModuleProps> = ({
       onShowToast(err instanceof Error ? err.message : 'Gagal merapikan catatan dengan AI.', 'error');
     } finally {
       setIsPolishing(false);
+    }
+  };
+
+  const handleScanImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!activeNote || !editorRef.current || isScanningImage) return;
+    const targetNoteId = activeNote.id;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      onShowToast('Gunakan gambar berformat JPG, PNG, atau WebP.', 'error');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      onShowToast('Ukuran gambar maksimal 10 MB.', 'error');
+      return;
+    }
+    if (!getStoredApiKey()) {
+      onShowToast('Tambahkan Gemini API Key untuk memindai dan merapikan gambar.', 'error');
+      onOpenApiKeyModal?.();
+      return;
+    }
+
+    setIsScanningImage(true);
+    onShowToast('AI sedang memindai gambar dan menyusun catatan...', 'info');
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result !== 'string') {
+            reject(new Error('Gambar gagal dibaca.'));
+            return;
+          }
+          resolve(reader.result);
+        };
+        reader.onerror = () => reject(new Error('Gambar gagal dibaca.'));
+        reader.readAsDataURL(file);
+      });
+      const base64Data = dataUrl.split(',')[1];
+      if (!base64Data) throw new Error('Format gambar tidak valid.');
+
+      const result = await createStructuredNoteFromImage({
+        mimeType: file.type,
+        base64Data,
+        title: activeNote.title
+      });
+      if (activeIdRef.current !== targetNoteId) {
+        onShowToast('Pemindaian selesai, tetapi catatan aktif telah berubah. Silakan pindai ulang pada catatan yang diinginkan.', 'error');
+        return;
+      }
+      const scannedHtml = sanitizeHtml(result.contentHtml);
+      if (!getPlainText(scannedHtml).trim()) {
+        throw new Error('Tidak ada teks yang dapat digunakan dari hasil pemindaian gambar.');
+      }
+
+      const existingContent = editorRef.current.innerHTML.trim();
+      editorRef.current.innerHTML = existingContent
+        ? `${existingContent}<p><br></p>${scannedHtml}`
+        : scannedHtml;
+      updateWordCount();
+      saveActiveNote(activeNote.title.trim() ? undefined : result.title);
+      onShowToast(`Catatan dari gambar siap: ${result.summary}`, 'success');
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : 'Gagal memindai gambar.', 'error');
+    } finally {
+      setIsScanningImage(false);
     }
   };
 
@@ -591,13 +664,34 @@ export const NotesModule: React.FC<NotesModuleProps> = ({
                 {/* AI Polish Button */}
                 <button
                   type="button"
-                  disabled={isPolishing}
+                  disabled={isPolishing || isScanningImage}
                   onClick={handlePolishWithAi}
                   title="Periksa dan perbaiki tata bahasa dengan AI"
                   className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors shadow-2xs disabled:opacity-50"
                 >
                   <Sparkles className={`w-3.5 h-3.5 ${isPolishing ? 'animate-spin text-emerald-600' : ''}`} />
                   <span className="hidden sm:inline">{isPolishing ? 'Merapikan...' : 'AI Polish'}</span>
+                </button>
+
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleScanImage}
+                  className="hidden"
+                  aria-label="Pilih gambar catatan untuk dipindai"
+                />
+                <button
+                  type="button"
+                  disabled={isScanningImage || isPolishing}
+                  onClick={() => imageInputRef.current?.click()}
+                  title="Pindai gambar dan susun menjadi catatan dengan AI"
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/70 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors shadow-2xs disabled:opacity-50"
+                >
+                  {isScanningImage
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : <ImagePlus className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">{isScanningImage ? 'Memindai...' : 'Pindai Gambar'}</span>
                 </button>
 
                 {/* Zen Mode Button */}
