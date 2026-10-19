@@ -60,7 +60,7 @@ export interface QuizQuestion {
   options?: string[];
   answer?: string;
   explanation?: string;
-  questionType?: 'meaning' | 'chunk-translation' | 'ai';
+  questionType?: 'meaning' | 'chunk-translation' | 'ai' | 'antonym' | 'word-family';
   chunkPattern?: string;
   expectedTranslation?: string;
 }
@@ -110,4 +110,3 @@ export interface WritingEvaluationResult {
   grammarFeedback: string;
   improvedVersion: string;
 }
-

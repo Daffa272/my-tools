@@ -432,12 +432,76 @@ export default function App() {
     }
 
     const selected = [...candidates].sort(() => Math.random() - 0.5).slice(0, 15);
-    const questions: QuizQuestion[] = selected.map((card) => ({
-      word: card.word,
-      questionType: 'meaning',
-      question: `Tuliskan arti kata "${card.word}" dalam Bahasa Indonesia:`,
-      expectedTranslation: card.translation
-    }));
+    const allWords = appState.words;
+    const makeOptions = (answer: string, distractors: string[]) => {
+      const uniqueDistractors = [...new Map(
+        distractors
+          .map((option) => option.trim())
+          .filter((option) => option && option.toLowerCase() !== answer.toLowerCase())
+          .map((option) => [option.toLowerCase(), option])
+      ).values()].slice(0, 3);
+      return [...uniqueDistractors, answer].sort(() => Math.random() - 0.5);
+    };
+    const exerciseGroups = [
+      selected.flatMap((card) =>
+        (card.antonyms || []).filter(Boolean).map((antonym) => ({
+          word: card.word,
+          questionType: 'antonym' as const,
+          question: `Pilih antonim yang tepat dari "${card.word}":`,
+          answer: antonym,
+          expectedTranslation: antonym,
+          options: makeOptions(
+            antonym,
+            allWords.flatMap((word) => [...(word.antonyms || []), word.word])
+          )
+        }))
+      ),
+      ...(['noun', 'verb', 'adjective', 'adverb'] as const).map((partOfSpeech) =>
+        selected.flatMap((card) => {
+          const answer = card.word_family?.[partOfSpeech];
+          if (!answer) return [];
+          const partOfSpeechLabel = {
+            noun: 'noun',
+            verb: 'verb',
+            adjective: 'adjective',
+            adverb: 'adverb'
+          }[partOfSpeech];
+          return [{
+            word: card.word,
+            questionType: 'word-family' as const,
+            question: `Pilih bentuk ${partOfSpeechLabel} dari "${card.word}":`,
+            answer,
+            expectedTranslation: answer,
+            options: makeOptions(
+              answer,
+              allWords.flatMap((word) => [
+                word.word_family?.[partOfSpeech] || '',
+                word.word
+              ])
+            )
+          }];
+        })
+      )
+    ];
+    const exerciseQuestions: QuizQuestion[] = [];
+    const usedExerciseWords = new Set<string>();
+    exerciseGroups.forEach((group) => {
+      const available = group.filter((question) => !usedExerciseWords.has(question.word.toLowerCase()));
+      if (available.length) {
+        const question = available[Math.floor(Math.random() * available.length)];
+        exerciseQuestions.push(question);
+        usedExerciseWords.add(question.word.toLowerCase());
+      }
+    });
+    const meaningQuestions: QuizQuestion[] = selected
+      .filter((card) => !usedExerciseWords.has(card.word.toLowerCase()))
+      .map((card) => ({
+        word: card.word,
+        questionType: 'meaning',
+        question: `Tuliskan arti kata "${card.word}" dalam Bahasa Indonesia:`,
+        expectedTranslation: card.translation
+      }));
+    const questions = [...exerciseQuestions, ...meaningQuestions];
 
     setQuizQuestions(questions);
     setQuizMode('weekly');
@@ -461,6 +525,19 @@ export default function App() {
     }));
 
     const result = await correctWeeklyMasteryTestAI(answerSheet, apiKey);
+    result.items = result.items.map((item) => {
+      const question = quizQuestions[item.questionNumber - 1];
+      if (!question?.options) return item;
+      const correct = (answers[item.questionNumber - 1] || '').toLowerCase() === question.answer?.toLowerCase();
+      return {
+        ...item,
+        correct,
+        note: correct ? 'Pilihan jawaban cocok dengan kunci.' : `Kunci jawaban: ${question.answer}`
+      };
+    }).sort((a, b) => a.questionNumber - b.questionNumber);
+    result.score = result.items.filter((item) => item.correct).length;
+    result.total = result.items.length;
+    result.feedback = `Jawaban benar: ${result.score} dari ${result.total}.`;
 
     const now = new Date();
     const updatedWords = [...appState.words];

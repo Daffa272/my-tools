@@ -80,12 +80,14 @@ export const QuizModal: React.FC<QuizModalProps> = ({
   };
 
   // Weekly open-ended answer handler
-  const handleSaveWeeklyAnswer = async () => {
-    if (!currentWeeklyInput.trim()) return;
+  const handleSaveWeeklyAnswer = async (answer = currentWeeklyInput) => {
+    if (!answer.trim()) return;
     const nextAnswers = [...weeklyAnswers];
-    nextAnswers[currentIndex] = currentWeeklyInput.trim();
+    nextAnswers[currentIndex] = answer.trim();
     setWeeklyAnswers(nextAnswers);
     setCurrentWeeklyInput('');
+    setSelectedOption(null);
+    setShowFeedback(false);
 
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
@@ -216,37 +218,73 @@ export const QuizModal: React.FC<QuizModalProps> = ({
               </button>
             </div>
           ) : mode === 'weekly' ? (
-            /* Weekly Open-Ended Question */
+            /* Weekly review question */
             <div className="space-y-4">
               <div>
                 <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">
-                  Tes Arti Kata (Mastery Check)
+                  {currentQ.questionType === 'antonym'
+                    ? 'Tes Antonim'
+                    : currentQ.questionType === 'word-family'
+                      ? 'Tes Word Family'
+                      : 'Tes Arti Kata (Mastery Check)'}
                 </span>
                 <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                  Tuliskan arti kata <span className="text-indigo-600 dark:text-indigo-400 underline">"{currentQ.word}"</span> dalam Bahasa Indonesia:
+                  {currentQ.question}
                 </h4>
               </div>
 
-              <input
-                type="text"
-                autoFocus
-                value={currentWeeklyInput}
-                onChange={(e) => setCurrentWeeklyInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveWeeklyAnswer();
-                }}
-                placeholder="Ketik terjemahan atau arti kata..."
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-              />
+              {currentQ.options ? (
+                <>
+                  <div className="space-y-2">
+                    {currentQ.options.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        disabled={showFeedback}
+                        onClick={() => {
+                          setSelectedOption(option);
+                          setShowFeedback(true);
+                        }}
+                        className={`w-full rounded-xl border p-3.5 text-left text-sm transition-all ${
+                          showFeedback && selectedOption === option
+                            ? option === currentQ.answer
+                              ? 'border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200'
+                              : 'border-rose-400 bg-rose-50 text-rose-900 dark:bg-rose-950 dark:text-rose-200'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                  {showFeedback && (
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      {selectedOption === currentQ.answer ? '✅ Jawaban benar!' : '❌ Belum tepat.'}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <input
+                  type="text"
+                  autoFocus
+                  value={currentWeeklyInput}
+                  onChange={(e) => setCurrentWeeklyInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveWeeklyAnswer();
+                  }}
+                  placeholder="Ketik terjemahan atau arti kata..."
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-sm text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                />
+              )}
 
               <div className="flex items-center justify-end">
                 <button
                   type="button"
-                  disabled={!currentWeeklyInput.trim()}
-                  onClick={handleSaveWeeklyAnswer}
+                  disabled={currentQ.options ? !showFeedback : !currentWeeklyInput.trim()}
+                  onClick={() => handleSaveWeeklyAnswer(currentQ.options ? selectedOption || '' : currentWeeklyInput)}
                   className="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 active:scale-95 disabled:opacity-40 transition-all"
                 >
-                  {currentIndex === questions.length - 1 ? 'Kirim untuk Dikoreksi AI' : 'Simpan & Lanjut'}
+                  {currentIndex === questions.length - 1 ? 'Kirim Jawaban' : 'Simpan & Lanjut'}
                 </button>
               </div>
             </div>

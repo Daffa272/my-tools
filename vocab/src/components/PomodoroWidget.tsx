@@ -188,13 +188,13 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
   const progressPercent = Math.min(100, Math.max(0, ((totalModeSeconds - remainingSeconds) / totalModeSeconds) * 100));
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 font-sans">
-      {!isExpanded ? (
+    <div className="fixed bottom-4 right-4 z-40 w-[340px] font-sans">
+      {!isExpanded && (
         /* Minimized Floating Circle */
         <button
           type="button"
           onClick={() => setIsExpanded(true)}
-          className="group flex items-center gap-2 rounded-full border border-orange-200 dark:border-orange-900/60 bg-white/95 dark:bg-slate-900/95 p-2.5 pr-4 shadow-xl backdrop-blur-md hover:bg-orange-50 dark:hover:bg-slate-800 active:scale-95 transition-all"
+          className="absolute bottom-0 right-0 group flex items-center gap-2 rounded-full border border-orange-200 dark:border-orange-900/60 bg-white/95 dark:bg-slate-900/95 p-2.5 pr-4 shadow-xl backdrop-blur-md hover:bg-orange-50 dark:hover:bg-slate-800 active:scale-95 transition-all"
         >
           <div
             className={`flex h-9 w-9 items-center justify-center rounded-full text-white shadow-md ${
@@ -212,9 +212,13 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
             </span>
           </div>
         </button>
-      ) : (
-        /* Expanded Panel */
-        <div className="w-[340px] max-h-[85vh] overflow-y-auto rounded-2xl border border-orange-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-2xl animate-in zoom-in-95 duration-200 space-y-4">
+      )}
+      {/* Keep the panel mounted so its YouTube iframe continues playing while minimized. */}
+      <div
+        className={`absolute bottom-0 right-0 w-[340px] max-h-[85vh] overflow-y-auto rounded-2xl border border-orange-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 ${
+          isExpanded ? 'visible opacity-100' : 'invisible opacity-0 pointer-events-none'
+        }`}
+      >
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
@@ -409,8 +413,7 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({
               </div>
             )}
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

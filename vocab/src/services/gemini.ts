@@ -249,7 +249,7 @@ export async function correctWeeklyMasteryTestAI(
   const cleanKey = normalizeApiKey(apiKey);
   if (!cleanKey) throw new Error('Gemini API Key diperlukan untuk mengoreksi tes.');
 
-  const systemPrompt = `Anda adalah pemeriksa tes arti kosakata Bahasa Inggris. Koreksi terjemahan Bahasa Indonesia dengan toleransi terhadap sinonim dan makna yang setara. Terima variasi kecil pada tanda baca, kapitalisasi, dan kata yang setara; jangan memberi nilai benar jika maknanya tidak sesuai. Nilai setiap soal secara terpisah dan pastikan score sama dengan jumlah item yang correct bernilai true.
+  const systemPrompt = `Anda adalah pemeriksa tes kosakata Bahasa Inggris. Untuk soal arti kata, koreksi terjemahan Bahasa Indonesia dengan toleransi terhadap sinonim dan makna yang setara. Terima variasi kecil pada tanda baca, kapitalisasi, dan kata yang setara; jangan memberi nilai benar jika maknanya tidak sesuai. Untuk soal pilihan ganda antonim atau word-family, anggap jawaban benar hanya jika sama dengan expectedAnswer setelah mengabaikan kapitalisasi. Nilai setiap soal secara terpisah dan pastikan score sama dengan jumlah item yang correct bernilai true.
 Kembalikan JSON valid dengan format:
 {"score": 0, "total": 0, "feedback": "ringkasan singkat dalam Bahasa Indonesia", "items": [{"questionNumber": 1, "correct": true, "note": "penjelasan singkat"}]}
 Jangan menambahkan markdown atau teks di luar JSON.`;
@@ -402,5 +402,4 @@ WAJIB KEMBALIKAN OUTPUT HANYA DALAM FORMAT JSON SEPERTI BERIKUT TANPA TEKS LAIN 
     improvedVersion: String(parsed.improvedVersion || '')
   };
 }
-
 
