@@ -58,6 +58,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
 
   // Exercises states
   const [synonymAnswer, setSynonymAnswer] = useState<string | null>(null);
+  const [reviewQuizAnswers, setReviewQuizAnswers] = useState<Record<string, string>>({});
 
   // Voice test on card state
   const [isVoiceTesting, setIsVoiceTesting] = useState(false);
@@ -74,11 +75,21 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
   const [isChunkAnswerChecked, setIsChunkAnswerChecked] = useState(false);
 
   const currentCard = cards[currentIndex];
+  const getReviewOptions = (answer: string, distractors: string[]) => {
+    const uniqueOptions = [...new Map(
+      [...distractors, answer]
+        .map((option) => option.trim())
+        .filter((option) => option && option.toLowerCase() !== answer.trim().toLowerCase())
+        .map((option) => [option.toLowerCase(), option])
+    ).values()];
+    return [...uniqueOptions.slice(0, 3), answer];
+  };
 
   // Reset states when current card changes or modal opens
   useEffect(() => {
     setIsFlipped(false);
     setSynonymAnswer(null);
+    setReviewQuizAnswers({});
     setIsVoiceTesting(false);
     setVoiceScore(null);
     setVoiceTranscript('');
@@ -643,6 +654,98 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                           </div>
                         </div>
                       )}
+
+                      {/* Antonym and word-family review questions */}
+                      {currentCard.antonyms?.filter(Boolean).length ? (
+                        <div
+                          className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-3 space-y-2 text-xs"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="font-bold text-slate-600 dark:text-slate-300 block">
+                            Latihan Antonim: pilih lawan kata dari "{currentCard.word}"
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {getReviewOptions(
+                              currentCard.antonyms![0],
+                              cards.flatMap((card) => [
+                                card.word,
+                                ...(card.synonyms || []),
+                                ...(card.antonyms || []),
+                                ...Object.values(card.word_family || {}).filter((form): form is string => Boolean(form))
+                              ])
+                            ).map((option) => {
+                              const selected = reviewQuizAnswers.antonym === option;
+                              const correct = option === currentCard.antonyms![0];
+                              return (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  disabled={Boolean(reviewQuizAnswers.antonym)}
+                                  onClick={() => setReviewQuizAnswers((previous) => ({ ...previous, antonym: option }))}
+                                  className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+                                    selected
+                                      ? correct
+                                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                        : 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                                      : reviewQuizAnswers.antonym && correct
+                                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {(['noun', 'verb', 'adjective', 'adverb'] as const).map((partOfSpeech) => {
+                        const answer = currentCard.word_family?.[partOfSpeech];
+                        if (!answer) return null;
+                        const answerKey = `family-${partOfSpeech}`;
+                        const distractors = cards.flatMap((card) => [
+                          card.word_family?.[partOfSpeech] || '',
+                          card.word,
+                          ...Object.values(card.word_family || {}).filter((form): form is string => Boolean(form))
+                        ]);
+                        return (
+                          <div
+                            key={partOfSpeech}
+                            className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-3 space-y-2 text-xs"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span className="font-bold text-slate-600 dark:text-slate-300 block">
+                              Latihan Word Family: pilih bentuk {partOfSpeech} dari "{currentCard.word}"
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                              {getReviewOptions(answer, distractors).map((option) => {
+                                const selected = reviewQuizAnswers[answerKey] === option;
+                                const correct = option === answer;
+                                return (
+                                  <button
+                                    key={option}
+                                    type="button"
+                                    disabled={Boolean(reviewQuizAnswers[answerKey])}
+                                    onClick={() => setReviewQuizAnswers((previous) => ({ ...previous, [answerKey]: option }))}
+                                    className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+                                      selected
+                                        ? correct
+                                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                          : 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                                        : reviewQuizAnswers[answerKey] && correct
+                                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                    }`}
+                                  >
+                                    {option}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
 
                       {/* 2. Voice test drill on card with AudioWaveform */}
                       <div
