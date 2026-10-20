@@ -21,6 +21,9 @@ import { AvatarPersona, ChatMessage, ConversationCard, ScenarioOption, FluencySc
 import { generateAvatarReply, speakAvatarVoice, evaluateConversationSession } from '../utils/gemini';
 import { logActivity } from '../utils/srs';
 import { ScorecardModal } from './ScorecardModal';
+import avatarTutorEmma from '../assets/images/avatar_tutor_emma_1792241990226.jpg';
+import avatarTutorDavid from '../assets/images/avatar_tutor_david_1792241991004.jpg';
+import avatarTutorMaya from '../assets/images/avatar_tutor_maya_1792241990300.jpg';
 
 const DEFAULT_AVATAR_PERSONAS: AvatarPersona[] = [
   {
@@ -30,7 +33,7 @@ const DEFAULT_AVATAR_PERSONAS: AvatarPersona[] = [
     accent: 'British English',
     voiceGender: 'female',
     bio: 'Ramah, bersahabat, menyukai topik buku, seni, travelling, dan obrolan santai sehari-hari.',
-    imagePath: '/src/assets/images/avatar_tutor_emma_1792241990226.jpg',
+    imagePath: avatarTutorEmma,
     defaultGreeting: "Hello there! It's so lovely to meet you. What would you like to talk about today?"
   },
   {
@@ -40,7 +43,7 @@ const DEFAULT_AVATAR_PERSONAS: AvatarPersona[] = [
     accent: 'American English',
     voiceGender: 'male',
     bio: 'Santai, penuh energi, menyukai topik teknologi, olahraga, musik, dan obrolan kasual.',
-    imagePath: '/src/assets/images/avatar_tutor_david_1792241991004.jpg',
+    imagePath: avatarTutorDavid,
     defaultGreeting: "Hey! Great to connect with you. How is your day going so far?"
   },
   {
@@ -50,7 +53,7 @@ const DEFAULT_AVATAR_PERSONAS: AvatarPersona[] = [
     accent: 'International English',
     voiceGender: 'female',
     bio: 'Penuh perhatian, pelafalan sangat jelas, ahli dalam latihan wawancara kerja dan percakapan terstruktur.',
-    imagePath: '/src/assets/images/avatar_tutor_maya_1792241990300.jpg',
+    imagePath: avatarTutorMaya,
     defaultGreeting: "Hi! Welcome. I'm here to help you practice speaking naturally and with confidence. Shall we start?"
   }
 ];

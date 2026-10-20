@@ -23,6 +23,8 @@ import { generateChineseAvatarReply, speakChineseVoice, evaluateChineseConversat
 import { logActivity } from '../utils/srs';
 import { ScorecardModal } from './ScorecardModal';
 import { ChineseVirtualKeyboard, VOWEL_TONE_MAP } from './ChineseVirtualKeyboard';
+import avatarChineseLin from '../assets/images/avatar_chinese_lin_1792244188711.jpg';
+import avatarChineseWei from '../assets/images/avatar_chinese_wei_1792244206599.jpg';
 
 const CHINESE_PERSONAS: ChineseAvatarPersona[] = [
   {
@@ -33,7 +35,7 @@ const CHINESE_PERSONAS: ChineseAvatarPersona[] = [
     accent: 'Standard Mandarin (普通话 - Beijing)',
     voiceGender: 'female',
     bio: 'Ramah, sabar, pelafalan nada sangat jelas dan presisi, ahli membimbing pemula hingga tingkat lanjut.',
-    imagePath: '/src/assets/images/avatar_chinese_lin_1792244188711.jpg',
+    imagePath: avatarChineseLin,
     defaultGreetingHanzi: '你好！欢迎和我一起练习中文。今天想聊些什么？',
     defaultGreetingPinyin: 'Nǐ hǎo! Huānyíng hé wǒ yīqǐ liànxí zhōngwén. Jīntiān xiǎng liáo xiē shénme?',
     defaultGreetingTranslation: 'Halo! Selamat datang untuk latihan bahasa Mandarin bersamaku. Apa yang ingin kamu bicarakan hari ini?'
@@ -46,7 +48,7 @@ const CHINESE_PERSONAS: ChineseAvatarPersona[] = [
     accent: 'Standard Mandarin (普通话 - Universal)',
     voiceGender: 'male',
     bio: 'Santai, penuh semangat, menyukai obrolan tentang makanan khas Tiongkok, travelling, budaya, dan teknologi.',
-    imagePath: '/src/assets/images/avatar_chinese_wei_1792244206599.jpg',
+    imagePath: avatarChineseWei,
     defaultGreetingHanzi: '嘿，你好！今天过得怎么样？你想喝杯咖啡还是聊聊天？',
     defaultGreetingPinyin: 'Hēi, nǐ hǎo! Jīntiān guò de zěnmeyàng? Nǐ xiǎng hē bēi kāfēi háishì liáoliáo tiān?',
     defaultGreetingTranslation: 'Hei, halo! Bagaimana harimu? Mau minum kopi atau ngobrol santai?'
