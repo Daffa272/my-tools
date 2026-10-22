@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   X,
   Volume2,
@@ -27,6 +27,21 @@ import { generateChunkMiniTestAI } from '../services/gemini';
 import { AudioWaveform } from './AudioWaveform';
 
 export type FlashcardReviewMode = 'standard' | 'reverse' | 'spelling';
+
+const getReviewOptions = (answer: string, distractors: string[]) => {
+  const uniqueOptions = [...new Map(
+    [...distractors, answer]
+      .map((option) => option.trim())
+      .filter((option) => option && option !== '-' && option.toLowerCase() !== answer.trim().toLowerCase())
+      .map((option) => [option.toLowerCase(), option])
+  ).values()];
+  const options = [...uniqueOptions.slice(0, 3), answer];
+  for (let index = options.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [options[index], options[randomIndex]] = [options[randomIndex], options[index]];
+  }
+  return options;
+};
 
 interface FlashcardModalProps {
   isOpen: boolean;
@@ -81,23 +96,41 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
   const validAntonyms = (currentCard?.antonyms || [])
     .map((option) => option.trim())
     .filter((option) => option && option !== '-');
-  const getReviewOptions = (answer: string, distractors: string[]) => {
-    const uniqueOptions = [...new Map(
-      [...distractors, answer]
-        .map((option) => option.trim())
-        .filter((option) => option && option !== '-' && option.toLowerCase() !== answer.trim().toLowerCase())
-        .map((option) => [option.toLowerCase(), option])
-    ).values()];
-    return [...uniqueOptions.slice(0, 3), answer];
-  };
   const synonymTarget = validSynonyms[0];
-  const synonymOptions = synonymTarget
-    ? getReviewOptions(synonymTarget, [...validSynonyms, ...validAntonyms])
-    : [];
+  const synonymOptions = useMemo(
+    () => synonymTarget
+      ? getReviewOptions(synonymTarget, [
+          ...(currentCard?.synonyms || []),
+          ...(currentCard?.antonyms || [])
+        ])
+      : [],
+    [currentCard, currentIndex]
+  );
   const antonymAnswer = validAntonyms[0];
-  const antonymOptions = antonymAnswer
-    ? getReviewOptions(antonymAnswer, [...validAntonyms, ...validSynonyms])
-    : [];
+  const antonymOptions = useMemo(
+    () => antonymAnswer
+      ? getReviewOptions(antonymAnswer, [
+          ...(currentCard?.antonyms || []),
+          ...(currentCard?.synonyms || [])
+        ])
+      : [],
+    [currentCard, currentIndex]
+  );
+  const wordFamilyOptions = useMemo(() => {
+    const options: Partial<Record<'noun' | 'verb' | 'adjective' | 'adverb', string[]>> = {};
+    if (!currentCard) return options;
+
+    const partsOfSpeech = ['noun', 'verb', 'adjective', 'adverb'] as const;
+    partsOfSpeech.forEach((partOfSpeech) => {
+      const answer = currentCard.word_family?.[partOfSpeech];
+      if (!answer || !answer.trim() || answer.trim() === '-') return;
+      const relatedForms = partsOfSpeech
+        .filter((type) => type !== partOfSpeech)
+        .map((type) => currentCard.word_family?.[type] || '');
+      options[partOfSpeech] = getReviewOptions(answer, relatedForms);
+    });
+    return options;
+  }, [currentCard, currentIndex]);
 
   // Reset states when current card changes or modal opens
   useEffect(() => {
@@ -703,10 +736,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                         const answer = currentCard.word_family?.[partOfSpeech];
                         if (!answer || !answer.trim() || answer.trim() === '-') return null;
                         const answerKey = `family-${partOfSpeech}`;
-                        const relatedForms = (['noun', 'verb', 'adjective', 'adverb'] as const)
-                          .filter((type) => type !== partOfSpeech)
-                          .map((type) => currentCard.word_family?.[type] || '');
-                        const options = getReviewOptions(answer, relatedForms);
+                        const options = wordFamilyOptions[partOfSpeech] || [];
                         if (options.length < 2) return null;
                         return (
                           <div

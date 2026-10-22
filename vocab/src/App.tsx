@@ -439,7 +439,12 @@ export default function App() {
           .filter((option) => option && option !== '-' && option.toLowerCase() !== answer.trim().toLowerCase())
           .map((option) => [option.toLowerCase(), option])
       ).values()].slice(0, 3);
-      return [...uniqueDistractors, answer].sort(() => Math.random() - 0.5);
+      const options = [...uniqueDistractors, answer];
+      for (let index = options.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [options[index], options[randomIndex]] = [options[randomIndex], options[index]];
+      }
+      return options;
     };
     const exerciseGroups = [
       selected.flatMap((card) => {

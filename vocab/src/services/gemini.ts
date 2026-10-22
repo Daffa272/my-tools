@@ -191,7 +191,7 @@ Kembalikan JSON saja dengan bentuk {"questions":[{"question":"...","options":[".
 
   const parsed = JSON.parse(cleaned);
   const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
-  const validQuestions = questions.filter((q: ChunkTestQuestion) =>
+  const validQuestions: ChunkTestQuestion[] = questions.filter((q: ChunkTestQuestion) =>
     q && typeof q.question === 'string' && q.question.trim() &&
     Array.isArray(q.options) && q.options.length === 4 &&
     q.options.every((opt: string) => typeof opt === 'string' && opt.trim()) &&
@@ -204,7 +204,18 @@ Kembalikan JSON saja dengan bentuk {"questions":[{"question":"...","options":[".
     throw new Error('Soal mini test yang dibuat AI tidak valid. Silakan coba lagi.');
   }
 
-  return validQuestions;
+  const correctPositions = [0, 1, 2, 3];
+  for (let index = correctPositions.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [correctPositions[index], correctPositions[randomIndex]] = [correctPositions[randomIndex], correctPositions[index]];
+  }
+
+  return validQuestions.map((question, questionIndex) => {
+    const correctOption = question.options[question.answerIndex];
+    const options = question.options.filter((_, optionIndex) => optionIndex !== question.answerIndex);
+    options.splice(correctPositions[questionIndex], 0, correctOption);
+    return { ...question, options, answerIndex: correctPositions[questionIndex] };
+  });
 }
 
 export async function generateTOEFLQuizAI(words: string[], apiKey: string): Promise<QuizQuestion[]> {
