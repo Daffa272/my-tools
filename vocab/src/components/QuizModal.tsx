@@ -222,11 +222,13 @@ export const QuizModal: React.FC<QuizModalProps> = ({
             <div className="space-y-4">
               <div>
                 <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">
-                  {currentQ.questionType === 'antonym'
-                    ? 'Tes Antonim'
-                    : currentQ.questionType === 'word-family'
-                      ? 'Tes Word Family'
-                      : 'Tes Arti Kata (Mastery Check)'}
+                  {currentQ.questionType === 'synonym'
+                    ? 'Tes Sinonim'
+                    : currentQ.questionType === 'antonym'
+                      ? 'Tes Antonim'
+                      : currentQ.questionType === 'word-family'
+                        ? 'Tes Word Family'
+                        : 'Tes Arti Kata (Mastery Check)'}
                 </span>
                 <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">
                   {currentQ.question}

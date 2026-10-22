@@ -432,66 +432,81 @@ export default function App() {
     }
 
     const selected = [...candidates].sort(() => Math.random() - 0.5).slice(0, 15);
-    const allWords = appState.words;
     const makeOptions = (answer: string, distractors: string[]) => {
       const uniqueDistractors = [...new Map(
         distractors
           .map((option) => option.trim())
-          .filter((option) => option && option.toLowerCase() !== answer.toLowerCase())
+          .filter((option) => option && option !== '-' && option.toLowerCase() !== answer.trim().toLowerCase())
           .map((option) => [option.toLowerCase(), option])
       ).values()].slice(0, 3);
       return [...uniqueDistractors, answer].sort(() => Math.random() - 0.5);
     };
     const exerciseGroups = [
-      selected.flatMap((card) =>
-        (card.antonyms || []).filter(Boolean).map((antonym) => ({
-          word: card.word,
-          questionType: 'antonym' as const,
-          question: `Pilih antonim yang tepat dari "${card.word}":`,
-          answer: antonym,
-          expectedTranslation: antonym,
-          options: makeOptions(
-            antonym,
-            allWords.flatMap((word) => [...(word.antonyms || []), word.word])
-          )
-        }))
-      ),
+      selected.flatMap((card) => {
+        const synonyms = (card.synonyms || []).map((option) => option.trim()).filter((option) => option && option !== '-');
+        const antonyms = (card.antonyms || []).map((option) => option.trim()).filter((option) => option && option !== '-');
+        return synonyms
+          .map((synonym) => ({
+            word: card.word,
+            questionType: 'synonym' as const,
+            question: `Pilih sinonim yang tepat dari "${card.word}":`,
+            answer: synonym,
+            expectedTranslation: synonym,
+            options: makeOptions(synonym, [...synonyms, ...antonyms])
+          }))
+          .filter((question) => question.options.length > 1);
+      }),
+      selected.flatMap((card) => {
+        const synonyms = (card.synonyms || []).map((option) => option.trim()).filter((option) => option && option !== '-');
+        const antonyms = (card.antonyms || []).map((option) => option.trim()).filter((option) => option && option !== '-');
+        return antonyms
+          .map((antonym) => ({
+            word: card.word,
+            questionType: 'antonym' as const,
+            question: `Pilih antonim yang tepat dari "${card.word}":`,
+            answer: antonym,
+            expectedTranslation: antonym,
+            options: makeOptions(antonym, [...antonyms, ...synonyms])
+          }))
+          .filter((question) => question.options.length > 1);
+      }),
       ...(['noun', 'verb', 'adjective', 'adverb'] as const).map((partOfSpeech) =>
         selected.flatMap((card) => {
-          const answer = card.word_family?.[partOfSpeech];
-          if (!answer) return [];
+          const answer = card.word_family?.[partOfSpeech]?.trim();
+          if (!answer || answer === '-') return [];
           const partOfSpeechLabel = {
             noun: 'noun',
             verb: 'verb',
             adjective: 'adjective',
             adverb: 'adverb'
           }[partOfSpeech];
+          const relatedForms = (['noun', 'verb', 'adjective', 'adverb'] as const)
+            .filter((type) => type !== partOfSpeech)
+            .map((type) => card.word_family?.[type] || '');
+          const options = makeOptions(answer, relatedForms);
+          if (options.length < 2) return [];
           return [{
             word: card.word,
             questionType: 'word-family' as const,
             question: `Pilih bentuk ${partOfSpeechLabel} dari "${card.word}":`,
             answer,
             expectedTranslation: answer,
-            options: makeOptions(
-              answer,
-              allWords.flatMap((word) => [
-                word.word_family?.[partOfSpeech] || '',
-                word.word
-              ])
-            )
+            options
           }];
         })
       )
     ];
     const exerciseQuestions: QuizQuestion[] = [];
     const usedExerciseWords = new Set<string>();
-    exerciseGroups.forEach((group) => {
-      const available = group.filter((question) => !usedExerciseWords.has(question.word.toLowerCase()));
-      if (available.length) {
-        const question = available[Math.floor(Math.random() * available.length)];
-        exerciseQuestions.push(question);
-        usedExerciseWords.add(question.word.toLowerCase());
-      }
+    const exercisesByWord = new Map<string, QuizQuestion[]>();
+    exerciseGroups.flat().forEach((question) => {
+      const wordKey = question.word.toLowerCase();
+      exercisesByWord.set(wordKey, [...(exercisesByWord.get(wordKey) || []), question]);
+    });
+    exercisesByWord.forEach((questions, wordKey) => {
+      const question = questions[Math.floor(Math.random() * questions.length)];
+      exerciseQuestions.push(question);
+      usedExerciseWords.add(wordKey);
     });
     const meaningQuestions: QuizQuestion[] = selected
       .filter((card) => !usedExerciseWords.has(card.word.toLowerCase()))

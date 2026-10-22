@@ -156,7 +156,22 @@ export async function generateChunkMiniTestAI(
       body: JSON.stringify({
         systemInstruction: {
           parts: [{
-            text: `Anda membuat mini-test Chunk Speak untuk pembelajar bahasa Inggris Indonesia. Dari daftar chunk, buat tepat 3 soal pilihan ganda yang menguji penggunaan chunk dalam konteks. Minimal satu soal harus meminta memilih terjemahan Inggris yang tepat untuk kalimat Bahasa Indonesia. Buat tepat 4 opsi berbeda per soal, satu jawaban benar. Hindari opsi ambigu; jelaskan jawaban dalam Bahasa Indonesia. Kembalikan JSON saja: {"questions":[{"question":"...","options":["...","...","...","..."],"answerIndex":0,"explanation":"..."}]}. answerIndex adalah indeks 0-based.`
+            text: `Anda menyusun latihan bergaya TOEFL iBT untuk pembelajar bahasa Inggris tingkat menengah hingga lanjut. Buat tepat 3 soal pilihan ganda berdasarkan kata dan daftar chunks yang diberikan. Soal harus menguji pemahaman serta penggunaan chunk dalam konteks akademik alami, bukan sekadar hafalan pola atau terjemahan literal.
+
+Buat variasi jenis soal berikut, masing-masing satu:
+1. Makna atau fungsi chunk dalam kalimat akademik (vocabulary/phrase in context).
+2. Melengkapi kalimat atau paragraf akademik dengan chunk yang paling tepat (sentence completion).
+3. Memilih kalimat yang menggunakan chunk secara gramatikal dan alami (usage/collocation).
+
+Ketentuan:
+- Gunakan konteks akademik bervariasi, misalnya biologi, geologi, sejarah, psikologi, atau ekonomi. Tulis soal dan pilihan dalam bahasa Inggris yang alami dan ringkas; tulis explanation dalam Bahasa Indonesia.
+- Gunakan chunk dari input dengan makna dan bentuk yang tetap tepat. Jika suatu jenis soal tidak dapat dibuat secara valid dari data, uji chunk lain atau fungsi chunk yang tersedia; jangan mengarang aturan atau makna.
+- Setiap soal harus memiliki tepat 4 opsi berbeda yang sejenis secara gramatikal dan masuk akal. Hanya satu opsi benar; pengecoh harus masuk akal tetapi salah karena makna, kolokasi, atau tata bahasa.
+- Hindari opsi yang jelas tidak masuk akal, jawaban yang tumpang tindih, petunjuk jawaban dari panjang atau format, terjemahan langsung, serta pertanyaan yang menguji pengetahuan di luar teks.
+- Explanation menyebutkan petunjuk konteks atau aturan penggunaan yang mendukung jawaban benar.
+- Jangan menyatakan soal ini sebagai soal resmi TOEFL.
+
+Kembalikan JSON saja dengan bentuk {"questions":[{"question":"...","options":["...","...","...","..."],"answerIndex":0,"explanation":"..."}]}. answerIndex adalah indeks 0-based.`
           }]
         },
         contents: [{
@@ -181,7 +196,8 @@ export async function generateChunkMiniTestAI(
     Array.isArray(q.options) && q.options.length === 4 &&
     q.options.every((opt: string) => typeof opt === 'string' && opt.trim()) &&
     new Set(q.options.map((opt: string) => opt.trim().toLowerCase())).size === 4 &&
-    Number.isInteger(q.answerIndex) && q.answerIndex >= 0 && q.answerIndex < 4
+    Number.isInteger(q.answerIndex) && q.answerIndex >= 0 && q.answerIndex < 4 &&
+    typeof q.explanation === 'string' && q.explanation.trim()
   ).slice(0, 3);
 
   if (validQuestions.length !== 3) {
@@ -402,4 +418,3 @@ WAJIB KEMBALIKAN OUTPUT HANYA DALAM FORMAT JSON SEPERTI BERIKUT TANPA TEKS LAIN 
     improvedVersion: String(parsed.improvedVersion || '')
   };
 }
-

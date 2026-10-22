@@ -75,15 +75,29 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
   const [isChunkAnswerChecked, setIsChunkAnswerChecked] = useState(false);
 
   const currentCard = cards[currentIndex];
+  const validSynonyms = (currentCard?.synonyms || [])
+    .map((option) => option.trim())
+    .filter((option) => option && option !== '-');
+  const validAntonyms = (currentCard?.antonyms || [])
+    .map((option) => option.trim())
+    .filter((option) => option && option !== '-');
   const getReviewOptions = (answer: string, distractors: string[]) => {
     const uniqueOptions = [...new Map(
       [...distractors, answer]
         .map((option) => option.trim())
-        .filter((option) => option && option.toLowerCase() !== answer.trim().toLowerCase())
+        .filter((option) => option && option !== '-' && option.toLowerCase() !== answer.trim().toLowerCase())
         .map((option) => [option.toLowerCase(), option])
     ).values()];
     return [...uniqueOptions.slice(0, 3), answer];
   };
+  const synonymTarget = validSynonyms[0];
+  const synonymOptions = synonymTarget
+    ? getReviewOptions(synonymTarget, [...validSynonyms, ...validAntonyms])
+    : [];
+  const antonymAnswer = validAntonyms[0];
+  const antonymOptions = antonymAnswer
+    ? getReviewOptions(antonymAnswer, [...validAntonyms, ...validSynonyms])
+    : [];
 
   // Reset states when current card changes or modal opens
   useEffect(() => {
@@ -612,51 +626,44 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                     {/* Interactive Drills on Card */}
                     <div className="space-y-2 pt-1">
                       {/* 1. Synonym Drill */}
-                      {currentCard.synonyms && currentCard.synonyms.length > 0 && (
+                      {synonymOptions.length > 1 && (
                         <div
                           className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-3 space-y-2 text-xs"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <span className="font-bold text-slate-600 dark:text-slate-300 block">
-                            Latihan Sinonim: pilih arti yang paling dekat
+                            Latihan Sinonim: pilih sinonim yang paling tepat dari "{currentCard.word}"
                           </span>
                           <div className="flex flex-wrap gap-2">
-                            {[
-                              currentCard.synonyms[0],
-                              currentCard.antonyms?.[0] || 'distractor',
-                              currentCard.word,
-                            ]
-                              .filter((v, i, a) => v && a.indexOf(v) === i)
-                              .sort()
-                              .map((opt) => {
-                                const isCorrect = opt === currentCard.synonyms![0];
-                                const isSelected = synonymAnswer === opt;
-                                return (
-                                  <button
-                                    key={opt}
-                                    type="button"
-                                    disabled={Boolean(synonymAnswer)}
-                                    onClick={() => setSynonymAnswer(opt)}
-                                    className={`rounded-lg px-2.5 py-1 text-xs font-medium border transition-all ${
-                                      isSelected
-                                        ? isCorrect
-                                          ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-300'
-                                          : 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-300'
-                                        : synonymAnswer && isCorrect
+                            {synonymOptions.map((opt) => {
+                              const isCorrect = opt === synonymTarget;
+                              const isSelected = synonymAnswer === opt;
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  disabled={Boolean(synonymAnswer)}
+                                  onClick={() => setSynonymAnswer(opt)}
+                                  className={`rounded-lg px-2.5 py-1 text-xs font-medium border transition-all ${
+                                    isSelected
+                                      ? isCorrect
+                                        ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-300'
+                                        : 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-300'
+                                      : synonymAnswer && isCorrect
                                         ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-300'
                                         : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                    }`}
-                                  >
-                                    {opt}
-                                  </button>
-                                );
-                              })}
+                                  }`}
+                                >
+                                  {opt}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
 
                       {/* Antonym and word-family review questions */}
-                      {currentCard.antonyms?.filter(Boolean).length ? (
+                      {antonymOptions.length > 1 ? (
                         <div
                           className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-3 space-y-2 text-xs"
                           onClick={(e) => e.stopPropagation()}
@@ -665,17 +672,9 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                             Latihan Antonim: pilih lawan kata dari "{currentCard.word}"
                           </span>
                           <div className="flex flex-wrap gap-2">
-                            {getReviewOptions(
-                              currentCard.antonyms![0],
-                              cards.flatMap((card) => [
-                                card.word,
-                                ...(card.synonyms || []),
-                                ...(card.antonyms || []),
-                                ...Object.values(card.word_family || {}).filter((form): form is string => Boolean(form))
-                              ])
-                            ).map((option) => {
+                            {antonymOptions.map((option) => {
                               const selected = reviewQuizAnswers.antonym === option;
-                              const correct = option === currentCard.antonyms![0];
+                              const correct = option === antonymAnswer;
                               return (
                                 <button
                                   key={option}
@@ -702,13 +701,13 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
 
                       {(['noun', 'verb', 'adjective', 'adverb'] as const).map((partOfSpeech) => {
                         const answer = currentCard.word_family?.[partOfSpeech];
-                        if (!answer) return null;
+                        if (!answer || !answer.trim() || answer.trim() === '-') return null;
                         const answerKey = `family-${partOfSpeech}`;
-                        const distractors = cards.flatMap((card) => [
-                          card.word_family?.[partOfSpeech] || '',
-                          card.word,
-                          ...Object.values(card.word_family || {}).filter((form): form is string => Boolean(form))
-                        ]);
+                        const relatedForms = (['noun', 'verb', 'adjective', 'adverb'] as const)
+                          .filter((type) => type !== partOfSpeech)
+                          .map((type) => currentCard.word_family?.[type] || '');
+                        const options = getReviewOptions(answer, relatedForms);
+                        if (options.length < 2) return null;
                         return (
                           <div
                             key={partOfSpeech}
@@ -719,7 +718,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                               Latihan Word Family: pilih bentuk {partOfSpeech} dari "{currentCard.word}"
                             </span>
                             <div className="flex flex-wrap gap-2">
-                              {getReviewOptions(answer, distractors).map((option) => {
+                              {options.map((option) => {
                                 const selected = reviewQuizAnswers[answerKey] === option;
                                 const correct = option === answer;
                                 return (

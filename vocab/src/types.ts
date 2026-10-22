@@ -60,7 +60,7 @@ export interface QuizQuestion {
   options?: string[];
   answer?: string;
   explanation?: string;
-  questionType?: 'meaning' | 'chunk-translation' | 'ai' | 'antonym' | 'word-family';
+  questionType?: 'meaning' | 'chunk-translation' | 'ai' | 'synonym' | 'antonym' | 'word-family';
   chunkPattern?: string;
   expectedTranslation?: string;
 }
